@@ -1,0 +1,2 @@
+REM REMOVE SERVICE NAMED SITAPARSER
+prunsrv.exe //DS//Parser

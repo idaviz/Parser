@@ -1,0 +1,26 @@
+[2015-02-05 13:59:17] [info]  [ 7276] Commons Daemon procrun (1.0.15.0 32-bit) started
+[2015-02-05 13:59:17] [info]  [ 7276] Service Parser name Parser
+[2015-02-05 13:59:18] [info]  [ 7276] Service 'Parser' installed
+[2015-02-05 13:59:18] [info]  [ 7276] Commons Daemon procrun finished
+[2015-02-05 14:01:46] [info]  [ 6572] Commons Daemon procrun (1.0.15.0 32-bit) started
+[2015-02-05 14:01:46] [info]  [ 6572] Service Parser name Parser
+[2015-02-05 14:01:46] [error] [ 6572] El servicio especificado se ha marcado para ser eliminado.
+[2015-02-05 14:01:46] [error] [ 6572] Failed installing 'Parser' service
+[2015-02-05 14:01:46] [error] [ 6572] El servicio especificado se ha marcado para ser eliminado.
+[2015-02-05 14:01:46] [error] [ 6572] Commons Daemon procrun failed with exit value: 8 (Failed to install service)
+[2015-02-05 14:01:46] [error] [ 6572] El servicio especificado se ha marcado para ser eliminado.
+[2015-02-05 14:02:16] [info]  [ 1396] Commons Daemon procrun (1.0.15.0 32-bit) started
+[2015-02-05 14:02:16] [info]  [ 1396] Service Parser name Parser
+[2015-02-05 14:02:16] [info]  [ 1396] Service 'Parser' installed
+[2015-02-05 14:02:16] [info]  [ 1396] Commons Daemon procrun finished
+[2015-02-05 14:04:11] [info]  [ 1624] Commons Daemon procrun (1.0.15.0 32-bit) started
+[2015-02-05 14:04:11] [info]  [ 1624] Service Parser name Parser
+[2015-02-05 14:04:11] [error] [ 1624] El servicio especificado se ha marcado para ser eliminado.
+[2015-02-05 14:04:11] [error] [ 1624] Failed installing 'Parser' service
+[2015-02-05 14:04:11] [error] [ 1624] El servicio especificado se ha marcado para ser eliminado.
+[2015-02-05 14:04:11] [error] [ 1624] Commons Daemon procrun failed with exit value: 8 (Failed to install service)
+[2015-02-05 14:04:11] [error] [ 1624] El servicio especificado se ha marcado para ser eliminado.
+[2015-02-05 14:04:31] [info]  [ 2596] Commons Daemon procrun (1.0.15.0 32-bit) started
+[2015-02-05 14:04:31] [info]  [ 2596] Service Parser name Parser
+[2015-02-05 14:04:31] [info]  [ 2596] Service 'Parser' installed
+[2015-02-05 14:04:31] [info]  [ 2596] Commons Daemon procrun finished
