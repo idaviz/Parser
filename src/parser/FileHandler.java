@@ -9,7 +9,9 @@ import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -56,6 +58,13 @@ public class FileHandler {
         try {
             Class.forName(driver).newInstance();
             con = DriverManager.getConnection(url + dbName, userName, password);
+            Statement st = con.createStatement();
+            ResultSet res = st.executeQuery("SELECT * FROM  tb_messages");
+            while (res.next()) {
+
+                String msg = res.getString("tex");
+                System.out.println(msg);
+            }
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException e) {
         }
     }
@@ -146,20 +155,13 @@ public class FileHandler {
      */
     private void DBinsertData(String fileContent) throws UnsupportedEncodingException, IOException {
         Configuration c = new Configuration();
-
-        BTypeFile b;
-
+        BTypeFile b = null;
         b = processBTypeFile(fileContent);
 
-        //if ((b.getSmi().equals("MVT")) || (b.getSmi().equals("LDM")) || (b.getSmi().equals("PSM"))) {
         if ((b.getSmi().equals("MVT")) || (b.getSmi().equals("PSM")) || (b.getSmi().equals("LDM")) || (b.getSmi().equals("CPM"))) {
-
             try {
-                PreparedStatement stmt = null;
-                //MESSAGES>>SQL // MESSAGE>>LOCAL
-                stmt = con.prepareStatement("INSERT INTO tb_messages (HEADER) VALUES (1)");
-                
-                //stmt = con.prepareStatement("INSERT INTO tb_messages (HEADER,PRIORITY,DESTINATIONTYPEB,ORIGIN,DBLSIG,MSGID,SUBJECT,SMI,FAXHEADER,TEX,ATTACHMENTS,TEX_FLT,TEX_DATE,TEX_EA,TEX_TOTALPAX,TEX_IN_WCHR,TEX_IN_WCHS,TEX_IN_WCHC,TEX_REG) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+                PreparedStatement stmt = null;      
+                stmt = con.prepareStatement("INSERT INTO tb_messages (HEADER,PRIORITY,DESTINATIONTYPEB,ORIGIN,DBLSIG,MSGID,SUBJECT,SMI,FAXHEADER,TEX,ATTACHMENTS,TEX_FLT,TEX_DATE,TEX_EA,TEX_TOTALPAX,TEX_IN_WCHR,TEX_IN_WCHS,TEX_IN_WCHC,TEX_REG) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
                 stmt.setString(1, b.getHeader());
                 stmt.setString(2, b.getPriority());
                 stmt.setString(3, b.getDestinationTypeB());
@@ -246,7 +248,6 @@ public class FileHandler {
                         System.out.println("Mensaje para vuelo ignorado: " + cpm.getFlightNumber() + "\n");
                     }
                 }
-                System.out.println(stmt);
                 stmt.close();
 
             } catch (SQLException ex) {

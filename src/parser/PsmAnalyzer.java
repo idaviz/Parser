@@ -138,7 +138,7 @@ public final class PsmAnalyzer {
                 i++;
                 x = m.charAt(i);
             }
-            this.setFlightDate(date.toString().substring(0, 2) + "/" + month + "/" + year + " 00:00:00");
+            this.setFlightDate(year + "-" + month + "-" + date.toString() + " 00:00:00");
         }
     }
 

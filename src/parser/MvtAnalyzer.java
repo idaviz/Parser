@@ -147,7 +147,7 @@ public final class MvtAnalyzer {
                 }
             }
             if (!this.flightDate.equals("-1")) {
-                this.setFlightDate(date.toString() + "/" + month + "/" + year + " 00:00:00");
+                this.setFlightDate(year + "-" + month + "-" + date.toString() + " 00:00:00");
             }
         }
     }
