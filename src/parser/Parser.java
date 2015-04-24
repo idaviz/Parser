@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
+import javax.naming.NamingException;
 
 /**
  *
@@ -21,8 +22,9 @@ public class Parser {
      * @throws java.io.IOException
      * @throws java.sql.SQLException
      * @throws java.lang.InterruptedException
+     * @throws javax.naming.NamingException
      */
-    public static void main(String[] args) throws IOException, SQLException, InterruptedException {
+    public static void main(String[] args) throws IOException, SQLException, InterruptedException, NamingException {
         
         System.out.println("Bienvenido " + System.getProperty("user.name") + "\n");
         System.out.println("Iniciando Parser...\n");

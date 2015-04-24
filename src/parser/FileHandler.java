@@ -13,43 +13,63 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.naming.Context;
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.sql.DataSource;
 
 /**
  * This class receives a B-Type message and inserts it into the DB.
  *
  * @author dgarcia25
  */
-public class FileHandler {  
-    
+public class FileHandler {
+
     /**
      * Database connection definition.
      */
     private Connection con;
-    /**
-     * Method to establish connection to the DB.
-     *
-     * @throws SQLException
-     */
-    private void DBconnection() throws SQLException, IOException {
+
+//    /**
+//     * Method to establish connection to the DB.
+//     *
+//     * @throws SQLException
+//     */
+//    private void DBconnection() throws SQLException, IOException {
+//        Configuration c = new Configuration();
+//        try {
+//            // Driver to be used
+//            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+//            // Connection definition
+//            con = DriverManager.getConnection("jdbc:sqlserver://"+c.getServerName()+";user="+c.getUser()+";password="+c.getPassword()+";");
+//        } catch (ClassNotFoundException ex) {
+//            Logger.getLogger( FileHandler.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//    }
+    private void DBconnection() throws NamingException, SQLException, IOException {
         Configuration c = new Configuration();
+        String url = "jdbc:mysql://localhost:3306/";
+        String dbName = "hermes";
+        String driver = "com.mysql.jdbc.Driver";
+        String userName = "root";
+        String password = "root";
         try {
-            // Driver to be used
-            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-            // Connection definition
-            con = DriverManager.getConnection("jdbc:sqlserver://"+c.getServerName()+";user="+c.getUser()+";password="+c.getPassword()+";");
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger( FileHandler.class.getName()).log(Level.SEVERE, null, ex);
+            Class.forName(driver).newInstance();
+            con = DriverManager.getConnection(url + dbName, userName, password);
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException e) {
         }
     }
 
     /**
      * Method to disconnect from DB.
      */
-    private void DBdisconnection() {
+    private void DBdisconnection() throws IOException {
+        Configuration c = new Configuration();
         try {
             con.close();
         } catch (SQLException ex) {
-            Logger.getLogger(FileHandler.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(FileHandler.class
+                    .getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -126,18 +146,20 @@ public class FileHandler {
      */
     private void DBinsertData(String fileContent) throws UnsupportedEncodingException, IOException {
         Configuration c = new Configuration();
-        
+
         BTypeFile b;
 
         b = processBTypeFile(fileContent);
 
         //if ((b.getSmi().equals("MVT")) || (b.getSmi().equals("LDM")) || (b.getSmi().equals("PSM"))) {
-        if ((b.getSmi().equals("MVT"))||(b.getSmi().equals("PSM"))||(b.getSmi().equals("LDM"))||(b.getSmi().equals("CPM"))) {
-            
+        if ((b.getSmi().equals("MVT")) || (b.getSmi().equals("PSM")) || (b.getSmi().equals("LDM")) || (b.getSmi().equals("CPM"))) {
+
             try {
                 PreparedStatement stmt = null;
                 //MESSAGES>>SQL // MESSAGE>>LOCAL
-                stmt = con.prepareStatement("INSERT INTO "+c.getTable()+"(HEADER,PRIORITY,DESTINATIONTYPEB,ORIGIN,DBLSIG,MSGID,SUBJECT,SMI,FAXHEADER,TEX,ATTACHMENTS,TEX_FLT,TEX_DATE,TEX_EA,TEX_TOTALPAX,TEX_IN_WCHR,TEX_IN_WCHS,TEX_IN_WCHC,TEX_REG) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
+                stmt = con.prepareStatement("INSERT INTO tb_messages (HEADER) VALUES (1)");
+                
+                //stmt = con.prepareStatement("INSERT INTO tb_messages (HEADER,PRIORITY,DESTINATIONTYPEB,ORIGIN,DBLSIG,MSGID,SUBJECT,SMI,FAXHEADER,TEX,ATTACHMENTS,TEX_FLT,TEX_DATE,TEX_EA,TEX_TOTALPAX,TEX_IN_WCHR,TEX_IN_WCHS,TEX_IN_WCHC,TEX_REG) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
                 stmt.setString(1, b.getHeader());
                 stmt.setString(2, b.getPriority());
                 stmt.setString(3, b.getDestinationTypeB());
@@ -156,77 +178,80 @@ public class FileHandler {
                     stmt.setString(14, mvt.getEa());
                     int pxx = mvt.getPx();
                     String pxxx = Integer.toString(pxx);
-                    stmt.setString(15,pxxx);
-                    stmt.setString(16,null);
-                    stmt.setString(17,null);
-                    stmt.setString(18,null);
-                    stmt.setString(19,mvt.getFlightRegistration());
+                    stmt.setString(15, pxxx);
+                    stmt.setString(16, null);
+                    stmt.setString(17, null);
+                    stmt.setString(18, null);
+                    stmt.setString(19, mvt.getFlightRegistration());
                     // At least flight EA and PX fields are required
-                    if ((!mvt.getEa().equals(""))&&(mvt.getPx()>=0)){
-                        System.out.println("Mensaje para vuelo añadido: "+mvt.getFlightNumber()+"\n");
+                    if ((!mvt.getEa().equals("")) && (mvt.getPx() >= 0)) {
+                        System.out.println("Mensaje para vuelo añadido: " + mvt.getFlightNumber() + "\n");
                         stmt.executeUpdate();
-                    }else{
-                        System.out.println("Mensaje para vuelo ignorado: "+mvt.getFlightNumber()+"\n");
+                    } else {
+                        System.out.println("Mensaje para vuelo ignorado: " + mvt.getFlightNumber() + "\n");
                     }
                 }
                 if (b.getSmi().equals("PSM")) {
                     PsmAnalyzer psm = new PsmAnalyzer(b.getText());
                     stmt.setString(12, psm.getFlightNumber());
                     stmt.setString(13, psm.getFlightDate());
-                    stmt.setString(14,null);
-                    stmt.setString(15,null);
-                    int wcr,wcs,wcc;
+                    stmt.setString(14, null);
+                    stmt.setString(15, null);
+                    int wcr, wcs, wcc;
                     wcr = psm.getWchr();
                     wcs = psm.getWchs();
                     wcc = psm.getWchc();
-                    stmt.setString(16,Integer.toString(wcr));
-                    stmt.setString(17,Integer.toString(wcs));
-                    stmt.setString(18,Integer.toString(wcc));
-                    stmt.setString(19,null);
-                    if ((!psm.getFlightNumber().equals(""))){
-                        System.out.println("Mensaje para vuelo añadido: "+psm.getFlightNumber()+"\n");
+                    stmt.setString(16, Integer.toString(wcr));
+                    stmt.setString(17, Integer.toString(wcs));
+                    stmt.setString(18, Integer.toString(wcc));
+                    stmt.setString(19, null);
+                    if ((!psm.getFlightNumber().equals(""))) {
+                        System.out.println("Mensaje para vuelo añadido: " + psm.getFlightNumber() + "\n");
                         stmt.executeUpdate();
-                    }else{
-                        System.out.println("Mensaje para vuelo ignorado: "+psm.getFlightNumber()+"\n");
+                    } else {
+                        System.out.println("Mensaje para vuelo ignorado: " + psm.getFlightNumber() + "\n");
                     }
-                }       
+                }
                 if (b.getSmi().equals("LDM")) {
                     LdmAnalyzer ldm = new LdmAnalyzer(b.getText());
                     stmt.setString(12, ldm.getFlightNumber());
                     stmt.setString(13, ldm.getFlightDate());
-                    stmt.setString(14,null);
-                    stmt.setString(15,null);
-                    stmt.setString(16,null);
-                    stmt.setString(17,null);
-                    stmt.setString(18,null);
-                    stmt.setString(19,null);
-                    if ((!ldm.getFlightNumber().equals(""))){
-                        System.out.println("Mensaje para vuelo añadido: "+ldm.getFlightNumber()+"\n");
+                    stmt.setString(14, null);
+                    stmt.setString(15, null);
+                    stmt.setString(16, null);
+                    stmt.setString(17, null);
+                    stmt.setString(18, null);
+                    stmt.setString(19, null);
+                    if ((!ldm.getFlightNumber().equals(""))) {
+                        System.out.println("Mensaje para vuelo añadido: " + ldm.getFlightNumber() + "\n");
                         stmt.executeUpdate();
-                    }else{
-                        System.out.println("Mensaje para vuelo ignorado: "+ldm.getFlightNumber()+"\n");
+                    } else {
+                        System.out.println("Mensaje para vuelo ignorado: " + ldm.getFlightNumber() + "\n");
                     }
                 }
                 if (b.getSmi().equals("CPM")) {
                     CpmAnalyzer cpm = new CpmAnalyzer(b.getText());
                     stmt.setString(12, cpm.getFlightNumber());
                     stmt.setString(13, cpm.getFlightDate());
-                    stmt.setString(14,null);
-                    stmt.setString(15,null);
-                    stmt.setString(16,null);
-                    stmt.setString(17,null);
-                    stmt.setString(18,null);
-                    stmt.setString(19,null);
-                    if ((!cpm.getFlightNumber().equals(""))){
-                        System.out.println("Mensaje para vuelo añadido: "+cpm.getFlightNumber()+"\n");
+                    stmt.setString(14, null);
+                    stmt.setString(15, null);
+                    stmt.setString(16, null);
+                    stmt.setString(17, null);
+                    stmt.setString(18, null);
+                    stmt.setString(19, null);
+                    if ((!cpm.getFlightNumber().equals(""))) {
+                        System.out.println("Mensaje para vuelo añadido: " + cpm.getFlightNumber() + "\n");
                         stmt.executeUpdate();
-                    }else{
-                        System.out.println("Mensaje para vuelo ignorado: "+cpm.getFlightNumber()+"\n");
+                    } else {
+                        System.out.println("Mensaje para vuelo ignorado: " + cpm.getFlightNumber() + "\n");
                     }
-                }     
-                stmt.close();                
+                }
+                System.out.println(stmt);
+                stmt.close();
+
             } catch (SQLException ex) {
-                Logger.getLogger(FileHandler.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(FileHandler.class
+                        .getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
@@ -238,8 +263,9 @@ public class FileHandler {
      * @param filesArray List of Files to be processed.
      * @throws SQLException
      * @throws java.io.UnsupportedEncodingException
+     * @throws javax.naming.NamingException
      */
-    public void processFileList(ArrayList<String> filesArray) throws SQLException, UnsupportedEncodingException, IOException {
+    public void processFileList(ArrayList<String> filesArray) throws SQLException, UnsupportedEncodingException, IOException, NamingException {
         // Connection to LoaderDB
         this.DBconnection();
         // Injection into SQL
