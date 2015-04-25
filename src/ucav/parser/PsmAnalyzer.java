@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package parser;
+package ucav.parser;
 
 import java.util.Calendar;
 
@@ -12,39 +12,49 @@ import java.util.Calendar;
  *
  * @author dgarcia25
  */
-public final class LdmAnalyzer {
+public final class PsmAnalyzer implements Analyzer {
 
     private String flightNumber = new String();
     private String flightDate = new String();
-    private String flightRegistration = new String();
     private String correction = new String();
     private String flightOrigin = new String();
     private String type = new String();
     private String message = new String();
+    private int wchr = -1;
+    private int wchs = -1;
+    private int wchc = -1;
 
-    public LdmAnalyzer(String m) {
+    @Override
+    public void Analyze(String message) {
+        this.PsmAnalyze(message);
+    }
+
+    public PsmAnalyzer() {
+    }
+
+    public void PsmAnalyze(String m) {
+
         flightNumber = "";
         flightDate = "";
-        flightRegistration = "";
         correction = "";
         flightOrigin = "";
         type = "";
+
         this.message = m;
 
         // Displays the message body in the command line.
         String m2display;
         m2display = m;
         m2display = m2display.replace("<br>", "\n");
-        System.out.println(">>Nuevo mensaje LDM detectado:\n\n" + m2display + "\n");
+        System.out.println(">>Nuevo mensaje PSM detectado:\n\n" + m2display + "\n");
 
         this.findFlight(message);
         if (!this.flightNumber.equals("-1")) {
             this.findFlightDate(message);
-            /**
-             * if (!this.flightDate.equals("-1")) { this.findEa(message); if
-             * (!this.ea.equals("-1")) { this.findPx(message); }
+
+            if (!this.flightDate.equals("-1")) {
+                this.findWch(message);
             }
-             */
         }
     }
 
@@ -58,7 +68,7 @@ public final class LdmAnalyzer {
         if (m.length() == 0) {
             this.flightNumber = "-1";
         } else {
-            if (m.startsWith("COR<br>LDM<br>")) {
+            if (m.startsWith("COR<br>PSM<br>")) {
                 message = message.substring(14);
                 StringBuilder flt = new StringBuilder();
                 int i = 0;
@@ -70,19 +80,7 @@ public final class LdmAnalyzer {
                 // Store the flight number
                 this.setFlightNumber(flt.toString());
                 message = message.substring(i);
-            } else if (m.startsWith("LDM<br>")) {
-                message = message.substring(7);
-                StringBuilder flt = new StringBuilder();
-                int i = 0;
-                char x;
-                while (message.charAt(i) != '/' && i < message.length()) {
-                    flt.append(message.charAt(i));
-                    i++;
-                }
-                // Store the flight number
-                this.setFlightNumber(flt.toString());
-                message = message.substring(i);    
-            } else if (m.startsWith("PDM<br>COR<br>LDM<br>")) {
+            } else if (m.startsWith("PDM<br>COR<br>PSM<br>")) {
                 message = message.substring(21);
                 StringBuilder flt = new StringBuilder();
                 int i = 0;
@@ -94,7 +92,7 @@ public final class LdmAnalyzer {
                 // Store the flight number
                 this.setFlightNumber(flt.toString());
                 message = message.substring(i);
-            } else if (m.startsWith("PDM<br>LDM<br>")) {
+            } else if (m.startsWith("PDM<br>PSM<br>")) {
                 message = message.substring(14);
                 StringBuilder flt = new StringBuilder();
                 int i = 0;
@@ -141,20 +139,74 @@ public final class LdmAnalyzer {
         if (!this.flightNumber.equals("-1")) {
             int i = 1;
             StringBuilder date = new StringBuilder();
-            while (m.charAt(i) != '.' && i < m.length()) {
-                date.append(m.charAt(i));
+            char x = m.charAt(i);
+            while (isaNumber(x)) {
+                date.append(x);
                 i++;
-                if (i == m.length()) {
-                    this.flightDate = "-1";
-                    break;
-                }
+                x = m.charAt(i);
             }
-            if (!this.flightDate.equals("-1")) {
-                this.setFlightDate(year + "-" + month + "-" + date.toString() + " 00:00:00");
-            }
+            this.setFlightDate(year + "-" + month + "-" + date.toString() + " 00:00:00");
         }
     }
-  
+
+    private Boolean isaNumber(char c) {
+        if (c == '0' || c == '1' || c == '2' || c == '3' || c == '4' || c == '5' || c == '6' || c == '7' || c == '8' || c == '9') {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public int getWchr() {
+        return wchr;
+    }
+
+    public void setWchr(int wchr) {
+        this.wchr = wchr;
+    }
+
+    public int getWchs() {
+        return wchs;
+    }
+
+    public void setWchs(int wchs) {
+        this.wchs = wchs;
+    }
+
+    public int getWchc() {
+        return wchc;
+    }
+
+    public void setWchc(int wchc) {
+        this.wchc = wchc;
+    }
+
+    private void findWch(String m) {
+        String chunks[] = new String[]{};
+        chunks = m.split(" ");
+        for (String s : chunks) {
+            s = s.trim();
+            if (s.contains("WCHR")) {
+                this.wchr++;
+            }
+            if (s.contains("WCHS")) {
+                this.wchs++;
+            }
+            if (s.contains("WCHC")) {
+                this.wchc++;
+            }
+        }
+        if (this.wchr == -1) {
+            this.wchr = 0;
+        }
+        if (this.wchs == -1) {
+            this.wchs = 0;
+        }
+        if (this.wchc == -1) {
+            this.wchc = 0;
+        }
+    }
+
     public String getFlightNumber() {
         return flightNumber;
     }
@@ -169,14 +221,6 @@ public final class LdmAnalyzer {
 
     public void setFlightDate(String flightDate) {
         this.flightDate = flightDate;
-    }
-
-    public String getFlightRegistration() {
-        return flightRegistration;
-    }
-
-    public void setFlightRegistration(String flightRegistration) {
-        this.flightRegistration = flightRegistration;
     }
 
     public String getCorrection() {
@@ -194,4 +238,5 @@ public final class LdmAnalyzer {
     public void setFlightOrigin(String flightOrigin) {
         this.flightOrigin = flightOrigin;
     }
+
 }

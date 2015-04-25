@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package parser;
+package ucav.parser;
 
 import java.util.Calendar;
 
@@ -12,7 +12,7 @@ import java.util.Calendar;
  *
  * @author dgarcia25
  */
-public final class CpmAnalyzer {
+public final class LdmAnalyzer implements Analyzer {
 
     private String flightNumber = new String();
     private String flightDate = new String();
@@ -21,12 +21,17 @@ public final class CpmAnalyzer {
     private String flightOrigin = new String();
     private String type = new String();
     private String message = new String();
-
-    /**
-     * @param m Message text detected as CPM type
-     */
     
-    public CpmAnalyzer(String m) {
+    @Override
+    public void Analyze(String message) {
+        this.LdmAnalyze(message);
+    }
+
+    public LdmAnalyzer() {
+    }
+    
+
+    public void LdmAnalyze(String m) {
         flightNumber = "";
         flightDate = "";
         flightRegistration = "";
@@ -39,25 +44,29 @@ public final class CpmAnalyzer {
         String m2display;
         m2display = m;
         m2display = m2display.replace("<br>", "\n");
-        System.out.println(">>Nuevo mensaje CPM detectado:\n\n" + m2display + "\n");
+        System.out.println(">>Nuevo mensaje LDM detectado:\n\n" + m2display + "\n");
 
         this.findFlight(message);
         if (!this.flightNumber.equals("-1")) {
             this.findFlightDate(message);
+            /**
+             * if (!this.flightDate.equals("-1")) { this.findEa(message); if
+             * (!this.ea.equals("-1")) { this.findPx(message); } }
+             */
         }
     }
 
     /**
      * Looks for the fligh number in the message.
      *
-     * @param m CPM message body as text.
+     * @param m MVT message body as text.
      */
     private void findFlight(String m) {
-        // A message can start with {null | COR CPM | PDM COR CPM | PDM CPM}
+        // A message can start with {null | COR MVT | PDM COR MVT | PDM MVT}
         if (m.length() == 0) {
             this.flightNumber = "-1";
         } else {
-            if (m.startsWith("COR<br>CPM<br>")) {
+            if (m.startsWith("COR<br>LDM<br>")) {
                 message = message.substring(14);
                 StringBuilder flt = new StringBuilder();
                 int i = 0;
@@ -69,7 +78,7 @@ public final class CpmAnalyzer {
                 // Store the flight number
                 this.setFlightNumber(flt.toString());
                 message = message.substring(i);
-            } else if (m.startsWith("CPM<br>")) {
+            } else if (m.startsWith("LDM<br>")) {
                 message = message.substring(7);
                 StringBuilder flt = new StringBuilder();
                 int i = 0;
@@ -80,8 +89,8 @@ public final class CpmAnalyzer {
                 }
                 // Store the flight number
                 this.setFlightNumber(flt.toString());
-                message = message.substring(i);    
-            } else if (m.startsWith("PDM<br>COR<br>CPM<br>")) {
+                message = message.substring(i);
+            } else if (m.startsWith("PDM<br>COR<br>LDM<br>")) {
                 message = message.substring(21);
                 StringBuilder flt = new StringBuilder();
                 int i = 0;
@@ -93,7 +102,7 @@ public final class CpmAnalyzer {
                 // Store the flight number
                 this.setFlightNumber(flt.toString());
                 message = message.substring(i);
-            } else if (m.startsWith("PDM<br>CPM<br>")) {
+            } else if (m.startsWith("PDM<br>LDM<br>")) {
                 message = message.substring(14);
                 StringBuilder flt = new StringBuilder();
                 int i = 0;
@@ -153,7 +162,7 @@ public final class CpmAnalyzer {
             }
         }
     }
-  
+
     public String getFlightNumber() {
         return flightNumber;
     }
@@ -193,4 +202,6 @@ public final class CpmAnalyzer {
     public void setFlightOrigin(String flightOrigin) {
         this.flightOrigin = flightOrigin;
     }
+
+    
 }

@@ -3,9 +3,8 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package parser;
+package ucav.parser;
 
-import java.io.IOException;
 import java.util.Calendar;
 
 /**
@@ -13,61 +12,60 @@ import java.util.Calendar;
  *
  * @author dgarcia25
  */
-public final class MvtAnalyzer {
+public final class CpmAnalyzer implements Analyzer{
 
     private String flightNumber = new String();
     private String flightDate = new String();
     private String flightRegistration = new String();
     private String correction = new String();
     private String flightOrigin = new String();
-    private String px = new String();
-    private String ea = new String();
+    private String type = new String();
     private String message = new String();
 
-    public MvtAnalyzer(String m) throws IOException {
+    @Override
+    public void Analyze(String message) {
+        this.CpmAnalyze(message);
+    }
+    
+    public CpmAnalyzer() {
+    }
+
+    /**
+     *
+     * @param m
+     */
+    private void CpmAnalyze(String m) {
         flightNumber = "";
         flightDate = "";
         flightRegistration = "";
         correction = "";
         flightOrigin = "";
-        px = "-1";
-        ea = "";
-
+        type = "";
         this.message = m;
 
         // Displays the message body in the command line.
         String m2display;
         m2display = m;
         m2display = m2display.replace("<br>", "\n");
-        System.out.println(">>Nuevo mensaje MVT detectado:\n\n" + m2display + "\n");
+        System.out.println(">>Nuevo mensaje CPM detectado:\n\n" + m2display + "\n");
 
         this.findFlight(message);
         if (!this.flightNumber.equals("-1")) {
             this.findFlightDate(message);
-            if (!this.flightDate.equals("-1")) {
-                this.findFlightRegistration(message);
-                if (!this.flightRegistration.equals("-1")) {
-                    this.findEa(message);
-                    if (!this.ea.equals("-1")) {
-                        this.findPx(message);
-                    }
-                }
-            }
         }
     }
 
     /**
-     * Looks for the fligh number in the message and stores it into flightNumber
-     * atrribute. If a valid flight number is not found, then -1 is returned.
+     * Looks for the fligh number in the message.
      *
-     * @param m MVT message body as text.
+     * @param m CPM message body as text.
      */
     private void findFlight(String m) {
-        // A message can start with {null | COR MVT | PDM COR MVT | PDM MVT}
+        // A message can start with {null | COR CPM | PDM COR CPM | PDM CPM}
         if (m.length() == 0) {
             this.flightNumber = "-1";
         } else {
-            if (m.startsWith("COR<br>MVT<br>")) {
+            if (m.startsWith("COR<br>CPM<br>")) {
                 message = message.substring(14);
                 StringBuilder flt = new StringBuilder();
                 int i = 0;
@@ -79,7 +77,19 @@ public final class MvtAnalyzer {
                 // Store the flight number
                 this.setFlightNumber(flt.toString());
                 message = message.substring(i);
-            } else if (m.startsWith("PDM<br>COR<br>MVT<br>")) {
+            } else if (m.startsWith("CPM<br>")) {
+                message = message.substring(7);
+                StringBuilder flt = new StringBuilder();
+                int i = 0;
+                char x;
+                while (message.charAt(i) != '/' && i < message.length()) {
+                    flt.append(message.charAt(i));
+                    i++;
+                }
+                // Store the flight number
+                this.setFlightNumber(flt.toString());
+                message = message.substring(i);    
+            } else if (m.startsWith("PDM<br>COR<br>CPM<br>")) {
                 message = message.substring(21);
                 StringBuilder flt = new StringBuilder();
                 int i = 0;
@@ -91,7 +101,7 @@ public final class MvtAnalyzer {
                 // Store the flight number
                 this.setFlightNumber(flt.toString());
                 message = message.substring(i);
-            } else if (m.startsWith("PDM<br>MVT<br>")) {
+            } else if (m.startsWith("PDM<br>CPM<br>")) {
                 message = message.substring(14);
                 StringBuilder flt = new StringBuilder();
                 int i = 0;
@@ -106,6 +116,7 @@ public final class MvtAnalyzer {
             } else {
                 StringBuilder flt = new StringBuilder();
                 int i = 0;
+                char x;
                 while (message.charAt(i) != '/' && i < message.length()) {
                     flt.append(message.charAt(i));
                     i++;
@@ -118,7 +129,6 @@ public final class MvtAnalyzer {
                 if (!this.flightNumber.equals("-1")) {
                     this.setFlightNumber(flt.toString());
                     message = message.substring(i);
-
                 }
             }
         }
@@ -126,7 +136,7 @@ public final class MvtAnalyzer {
 
     /**
      * Looks for the flight date in the message. If found, it assigns the value
-     * to the field #FlightDate otherwise returns -1.
+     * to the field #FlightDate.
      *
      * @param m MVT message body without Flight Number part.
      */
@@ -151,120 +161,7 @@ public final class MvtAnalyzer {
             }
         }
     }
-
-    private void findFlightRegistration(String m) {
-        if (!this.flightDate.equals("-1")) {
-            int i = 1;
-            StringBuilder reg = new StringBuilder();
-            // Skip initial part of the message LX2151/29DEC.
-            while (m.charAt(i) != '.' && i < m.length()) {
-                i++;
-                if (i == m.length()) {
-                    this.flightRegistration = "-1";
-                    break;
-                }
-            }
-            // now we expect to read reg pattern between two dots .HBIJS.
-            i++;
-            while (m.charAt(i) != '.' && i < m.length()) {
-                reg.append(m.charAt(i));
-                i++;
-                if (i == m.length()) {
-                    this.flightRegistration = "-1";
-                    break;
-                }
-            }
-            if (!this.flightRegistration.equals("-1")) {
-                this.setFlightRegistration(reg.toString());
-            }
-        }
-    }
-
-    /**
-     * Looks for the field EA in the message. If found, it assigns the value to
-     * the field EA, if not, it assigns "" to field EA.
-     *
-     * @param m MVT message body without Flight Number part.
-     */
-    private void findEa(String m) throws IOException {
-        Configuration c = new Configuration();
-        
-        int i = 0;
-        String chunk;
-        String eaTime;
-        String eaHour = null, eaMinute = new String();
-        Boolean found = false;
-        // searh for EA item
-        while ((i <= m.length() - 10) && (!found)) {
-            chunk = m.substring(i, i + 10);
-            if (chunk.startsWith("EA") && (chunk.endsWith(c.getAirport()))) {
-                chunk = chunk.trim();
-                eaHour = chunk.substring(2, 4);
-                eaMinute = chunk.substring(4, 6);
-                eaTime = chunk.substring(2, 6);
-                found = true;
-            }
-            i++;
-        }
-        if (found) {
-            eaTime = eaHour + ":" + eaMinute + ":00";
-            this.setEa(eaTime);
-        } else {
-            this.setEa("");
-        }
-    }
-
-    /**
-     * Looks for the field PX in the message. If found, it assigns the value to
-     * the field PX, if not, it assigns "" to field PX.
-     *
-     * @param m MVT message body without Flight Number part.
-     */
-    private void findPx(String m) {
-        int i = 0;
-        String pxNumber = "-1";
-        Boolean found = false;
-        String chunk;
-        // search for PX item
-        while (((i <= m.length() - 5)) && (!found)) {
-            chunk = m.substring(i, i + 5);
-            if (chunk.startsWith("PX")) {
-                chunk = chunk.trim();
-                pxNumber = chunk.substring(2, chunk.length());
-                found = true;
-            }
-            i++;
-        }
-        if (found) {
-            this.setPx(pxNumber);
-        } else {
-            this.setPx("-1");
-        }
-    }
-
-    public String getEa() {
-        return ea;
-    }
-
-    public void setEa(String ea) {
-        this.ea = ea;
-    }
-
-    public int getPx() {
-        int i;
-        try {
-            i = Integer.parseInt(px);
-        } catch (NumberFormatException ex) {
-            i = -1;
-        }
-
-        return i;
-    }
-
-    public void setPx(String px) {
-        this.px = px;
-    }
-
+  
     public String getFlightNumber() {
         return flightNumber;
     }
@@ -304,4 +201,6 @@ public final class MvtAnalyzer {
     public void setFlightOrigin(String flightOrigin) {
         this.flightOrigin = flightOrigin;
     }
+
+    
 }

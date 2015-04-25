@@ -4,21 +4,20 @@
  */
 package parser;
 
+import ucav.parser.PsmAnalyzer;
+import ucav.parser.MvtAnalyzer;
+import ucav.parser.LdmAnalyzer;
+import ucav.parser.CpmAnalyzer;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.naming.Context;
-import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import javax.sql.DataSource;
 
 /**
  * This class receives a B-Type message and inserts it into the DB.
@@ -32,22 +31,7 @@ public class FileHandler {
      */
     private Connection con;
 
-//    /**
-//     * Method to establish connection to the DB.
-//     *
-//     * @throws SQLException
-//     */
-//    private void DBconnection() throws SQLException, IOException {
-//        Configuration c = new Configuration();
-//        try {
-//            // Driver to be used
-//            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-//            // Connection definition
-//            con = DriverManager.getConnection("jdbc:sqlserver://"+c.getServerName()+";user="+c.getUser()+";password="+c.getPassword()+";");
-//        } catch (ClassNotFoundException ex) {
-//            Logger.getLogger( FileHandler.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-//    }
+
     private void DBconnection() throws NamingException, SQLException, IOException {
         Configuration c = new Configuration();
         String url = "jdbc:mysql://localhost:3306/";
@@ -58,13 +42,6 @@ public class FileHandler {
         try {
             Class.forName(driver).newInstance();
             con = DriverManager.getConnection(url + dbName, userName, password);
-            Statement st = con.createStatement();
-            ResultSet res = st.executeQuery("SELECT * FROM  tb_messages");
-            while (res.next()) {
-
-                String msg = res.getString("tex");
-                System.out.println(msg);
-            }
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException e) {
         }
     }
@@ -174,7 +151,8 @@ public class FileHandler {
                 stmt.setString(10, b.getText());
                 stmt.setString(11, b.getAttachments());
                 if (b.getSmi().equals("MVT")) {
-                    MvtAnalyzer mvt = new MvtAnalyzer(b.getText());
+                    MvtAnalyzer mvt = new MvtAnalyzer();
+                    mvt.Analyze(b.getText());
                     stmt.setString(12, mvt.getFlightNumber());
                     stmt.setString(13, mvt.getFlightDate());
                     stmt.setString(14, mvt.getEa());
@@ -194,7 +172,8 @@ public class FileHandler {
                     }
                 }
                 if (b.getSmi().equals("PSM")) {
-                    PsmAnalyzer psm = new PsmAnalyzer(b.getText());
+                    PsmAnalyzer psm = new PsmAnalyzer();
+                    psm.Analyze(b.getText());
                     stmt.setString(12, psm.getFlightNumber());
                     stmt.setString(13, psm.getFlightDate());
                     stmt.setString(14, null);
@@ -215,7 +194,8 @@ public class FileHandler {
                     }
                 }
                 if (b.getSmi().equals("LDM")) {
-                    LdmAnalyzer ldm = new LdmAnalyzer(b.getText());
+                    LdmAnalyzer ldm = new LdmAnalyzer();
+                    ldm.Analyze(b.getText());
                     stmt.setString(12, ldm.getFlightNumber());
                     stmt.setString(13, ldm.getFlightDate());
                     stmt.setString(14, null);
@@ -232,7 +212,8 @@ public class FileHandler {
                     }
                 }
                 if (b.getSmi().equals("CPM")) {
-                    CpmAnalyzer cpm = new CpmAnalyzer(b.getText());
+                    CpmAnalyzer cpm = new CpmAnalyzer();
+                    cpm.Analyze(b.getText());
                     stmt.setString(12, cpm.getFlightNumber());
                     stmt.setString(13, cpm.getFlightDate());
                     stmt.setString(14, null);
