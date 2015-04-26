@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package ucav.parser;
+package ucav.parser.strategy;
 
 import java.util.Calendar;
 
@@ -60,7 +60,7 @@ public final class CpmAnalyzer implements Analyzer{
      *
      * @param m CPM message body as text.
      */
-    private void findFlight(String m) {
+    public void findFlight(String m) {
         // A message can start with {null | COR CPM | PDM COR CPM | PDM CPM}
         if (m.length() == 0) {
             this.flightNumber = "-1";
@@ -170,6 +170,7 @@ public final class CpmAnalyzer implements Analyzer{
         this.flightNumber = flightNumber;
     }
 
+    @Override
     public String getFlightDate() {
         return flightDate;
     }
@@ -200,6 +201,31 @@ public final class CpmAnalyzer implements Analyzer{
 
     public void setFlightOrigin(String flightOrigin) {
         this.flightOrigin = flightOrigin;
+    }
+
+    @Override
+    public int getWchr() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public int getWchs() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public int getWchc() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public String getEa() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public int getPx() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     

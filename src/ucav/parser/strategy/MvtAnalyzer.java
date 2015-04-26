@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package ucav.parser;
+package ucav.parser.strategy;
 
 import java.io.IOException;
 import java.util.Calendar;
@@ -77,7 +77,7 @@ public final class MvtAnalyzer implements Analyzer {
      *
      * @param m MVT message body as text.
      */
-    private void findFlight(String m) {
+    public void findFlight(String m) {
         // A message can start with {null | COR MVT | PDM COR MVT | PDM MVT}
         if (m.length() == 0) {
             this.flightNumber = "-1";
@@ -318,6 +318,21 @@ public final class MvtAnalyzer implements Analyzer {
     
     public void setFlightOrigin(String flightOrigin) {
         this.flightOrigin = flightOrigin;
+    }
+
+    @Override
+    public int getWchr() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public int getWchs() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public int getWchc() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 }

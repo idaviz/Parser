@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package ucav.parser;
+package ucav.parser.strategy;
 
 import java.util.Calendar;
 
@@ -12,49 +12,47 @@ import java.util.Calendar;
  *
  * @author dgarcia25
  */
-public final class PsmAnalyzer implements Analyzer {
+public final class LdmAnalyzer implements Analyzer {
 
     private String flightNumber = new String();
     private String flightDate = new String();
+    private String flightRegistration = new String();
     private String correction = new String();
     private String flightOrigin = new String();
     private String type = new String();
     private String message = new String();
-    private int wchr = -1;
-    private int wchs = -1;
-    private int wchc = -1;
-
+    
     @Override
     public void Analyze(String message) {
-        this.PsmAnalyze(message);
+        this.LdmAnalyze(message);
     }
 
-    public PsmAnalyzer() {
+    public LdmAnalyzer() {
     }
+    
 
-    public void PsmAnalyze(String m) {
-
+    public void LdmAnalyze(String m) {
         flightNumber = "";
         flightDate = "";
+        flightRegistration = "";
         correction = "";
         flightOrigin = "";
         type = "";
-
         this.message = m;
 
         // Displays the message body in the command line.
         String m2display;
         m2display = m;
         m2display = m2display.replace("<br>", "\n");
-        System.out.println(">>Nuevo mensaje PSM detectado:\n\n" + m2display + "\n");
+        System.out.println(">>Nuevo mensaje LDM detectado:\n\n" + m2display + "\n");
 
         this.findFlight(message);
         if (!this.flightNumber.equals("-1")) {
             this.findFlightDate(message);
-
-            if (!this.flightDate.equals("-1")) {
-                this.findWch(message);
-            }
+            /**
+             * if (!this.flightDate.equals("-1")) { this.findEa(message); if
+             * (!this.ea.equals("-1")) { this.findPx(message); } }
+             */
         }
     }
 
@@ -63,12 +61,12 @@ public final class PsmAnalyzer implements Analyzer {
      *
      * @param m MVT message body as text.
      */
-    private void findFlight(String m) {
+    public void findFlight(String m) {
         // A message can start with {null | COR MVT | PDM COR MVT | PDM MVT}
         if (m.length() == 0) {
             this.flightNumber = "-1";
         } else {
-            if (m.startsWith("COR<br>PSM<br>")) {
+            if (m.startsWith("COR<br>LDM<br>")) {
                 message = message.substring(14);
                 StringBuilder flt = new StringBuilder();
                 int i = 0;
@@ -80,7 +78,19 @@ public final class PsmAnalyzer implements Analyzer {
                 // Store the flight number
                 this.setFlightNumber(flt.toString());
                 message = message.substring(i);
-            } else if (m.startsWith("PDM<br>COR<br>PSM<br>")) {
+            } else if (m.startsWith("LDM<br>")) {
+                message = message.substring(7);
+                StringBuilder flt = new StringBuilder();
+                int i = 0;
+                char x;
+                while (message.charAt(i) != '/' && i < message.length()) {
+                    flt.append(message.charAt(i));
+                    i++;
+                }
+                // Store the flight number
+                this.setFlightNumber(flt.toString());
+                message = message.substring(i);
+            } else if (m.startsWith("PDM<br>COR<br>LDM<br>")) {
                 message = message.substring(21);
                 StringBuilder flt = new StringBuilder();
                 int i = 0;
@@ -92,7 +102,7 @@ public final class PsmAnalyzer implements Analyzer {
                 // Store the flight number
                 this.setFlightNumber(flt.toString());
                 message = message.substring(i);
-            } else if (m.startsWith("PDM<br>PSM<br>")) {
+            } else if (m.startsWith("PDM<br>LDM<br>")) {
                 message = message.substring(14);
                 StringBuilder flt = new StringBuilder();
                 int i = 0;
@@ -139,74 +149,21 @@ public final class PsmAnalyzer implements Analyzer {
         if (!this.flightNumber.equals("-1")) {
             int i = 1;
             StringBuilder date = new StringBuilder();
-            char x = m.charAt(i);
-            while (isaNumber(x)) {
-                date.append(x);
+            while (m.charAt(i) != '.' && i < m.length()) {
+                date.append(m.charAt(i));
                 i++;
-                x = m.charAt(i);
+                if (i == m.length()) {
+                    this.flightDate = "-1";
+                    break;
+                }
             }
-            this.setFlightDate(year + "-" + month + "-" + date.toString() + " 00:00:00");
-        }
-    }
-
-    private Boolean isaNumber(char c) {
-        if (c == '0' || c == '1' || c == '2' || c == '3' || c == '4' || c == '5' || c == '6' || c == '7' || c == '8' || c == '9') {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public int getWchr() {
-        return wchr;
-    }
-
-    public void setWchr(int wchr) {
-        this.wchr = wchr;
-    }
-
-    public int getWchs() {
-        return wchs;
-    }
-
-    public void setWchs(int wchs) {
-        this.wchs = wchs;
-    }
-
-    public int getWchc() {
-        return wchc;
-    }
-
-    public void setWchc(int wchc) {
-        this.wchc = wchc;
-    }
-
-    private void findWch(String m) {
-        String chunks[] = new String[]{};
-        chunks = m.split(" ");
-        for (String s : chunks) {
-            s = s.trim();
-            if (s.contains("WCHR")) {
-                this.wchr++;
-            }
-            if (s.contains("WCHS")) {
-                this.wchs++;
-            }
-            if (s.contains("WCHC")) {
-                this.wchc++;
+            if (!this.flightDate.equals("-1")) {
+                this.setFlightDate(year + "-" + month + "-" + date.toString() + " 00:00:00");
             }
         }
-        if (this.wchr == -1) {
-            this.wchr = 0;
-        }
-        if (this.wchs == -1) {
-            this.wchs = 0;
-        }
-        if (this.wchc == -1) {
-            this.wchc = 0;
-        }
     }
 
+    @Override
     public String getFlightNumber() {
         return flightNumber;
     }
@@ -221,6 +178,14 @@ public final class PsmAnalyzer implements Analyzer {
 
     public void setFlightDate(String flightDate) {
         this.flightDate = flightDate;
+    }
+
+    public String getFlightRegistration() {
+        return flightRegistration;
+    }
+
+    public void setFlightRegistration(String flightRegistration) {
+        this.flightRegistration = flightRegistration;
     }
 
     public String getCorrection() {
@@ -239,4 +204,30 @@ public final class PsmAnalyzer implements Analyzer {
         this.flightOrigin = flightOrigin;
     }
 
+    @Override
+    public int getWchr() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public int getWchs() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public int getWchc() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public String getEa() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public int getPx() {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    
 }

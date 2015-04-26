@@ -4,10 +4,10 @@
  */
 package parser;
 
-import ucav.parser.PsmAnalyzer;
-import ucav.parser.MvtAnalyzer;
-import ucav.parser.LdmAnalyzer;
-import ucav.parser.CpmAnalyzer;
+import ucav.parser.strategy.PsmAnalyzer;
+import ucav.parser.strategy.MvtAnalyzer;
+import ucav.parser.strategy.LdmAnalyzer;
+import ucav.parser.strategy.CpmAnalyzer;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
@@ -18,6 +18,8 @@ import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.naming.NamingException;
+import ucav.parser.strategy.Analyzer;
+import ucav.parser.strategy.AnalyzerContext;
 
 /**
  * This class receives a B-Type message and inserts it into the DB.
@@ -151,82 +153,87 @@ public class FileHandler {
                 stmt.setString(10, b.getText());
                 stmt.setString(11, b.getAttachments());
                 if (b.getSmi().equals("MVT")) {
-                    MvtAnalyzer mvt = new MvtAnalyzer();
-                    mvt.Analyze(b.getText());
-                    stmt.setString(12, mvt.getFlightNumber());
-                    stmt.setString(13, mvt.getFlightDate());
-                    stmt.setString(14, mvt.getEa());
-                    int pxx = mvt.getPx();
+                   AnalyzerContext ctx = new AnalyzerContext();
+                    ctx.setAnalyzer(new MvtAnalyzer());
+                    ctx.analyzeMessage(b.getText());
+                    stmt.setString(12, ctx.getFlightNumber());
+                    stmt.setString(13, ctx.getFlightDate());
+                    stmt.setString(14, ctx.getEa());
+                    int pxx = ctx.getPx();
                     String pxxx = Integer.toString(pxx);
                     stmt.setString(15, pxxx);
                     stmt.setString(16, null);
                     stmt.setString(17, null);
                     stmt.setString(18, null);
-                    stmt.setString(19, mvt.getFlightRegistration());
+                    stmt.setString(19, ctx.getFlightRegistration());
                     // At least flight EA and PX fields are required
-                    if ((!mvt.getEa().equals("")) && (mvt.getPx() >= 0)) {
-                        System.out.println("Mensaje para vuelo añadido: " + mvt.getFlightNumber() + "\n");
+                    if ((!ctx.getEa().equals("")) && (ctx.getPx() >= 0)) {
+                        System.out.println("Mensaje para vuelo añadido: " + ctx.getFlightNumber() + "\n");
                         stmt.executeUpdate();
                     } else {
-                        System.out.println("Mensaje para vuelo ignorado: " + mvt.getFlightNumber() + "\n");
+                        System.out.println("Mensaje para vuelo ignorado: " + ctx.getFlightNumber() + "\n");
                     }
                 }
                 if (b.getSmi().equals("PSM")) {
-                    PsmAnalyzer psm = new PsmAnalyzer();
-                    psm.Analyze(b.getText());
-                    stmt.setString(12, psm.getFlightNumber());
-                    stmt.setString(13, psm.getFlightDate());
+                    
+                    AnalyzerContext ctx = new AnalyzerContext();
+                    ctx.setAnalyzer(new PsmAnalyzer());
+                    ctx.analyzeMessage(b.getText());
+                    stmt.setString(12, ctx.getFlightNumber());
+                    stmt.setString(13, ctx.getFlightDate());
                     stmt.setString(14, null);
                     stmt.setString(15, null);
                     int wcr, wcs, wcc;
-                    wcr = psm.getWchr();
-                    wcs = psm.getWchs();
-                    wcc = psm.getWchc();
+                    wcr = ctx.getWchr();
+                    wcs = ctx.getWchs();
+                    wcc = ctx.getWchc();
                     stmt.setString(16, Integer.toString(wcr));
                     stmt.setString(17, Integer.toString(wcs));
                     stmt.setString(18, Integer.toString(wcc));
                     stmt.setString(19, null);
-                    if ((!psm.getFlightNumber().equals(""))) {
-                        System.out.println("Mensaje para vuelo añadido: " + psm.getFlightNumber() + "\n");
+                    if ((!ctx.getFlightNumber().equals(""))) {
+                        System.out.println("Mensaje para vuelo añadido: " + ctx.getFlightNumber() + "\n");
                         stmt.executeUpdate();
                     } else {
-                        System.out.println("Mensaje para vuelo ignorado: " + psm.getFlightNumber() + "\n");
+                        System.out.println("Mensaje para vuelo ignorado: " + ctx.getFlightNumber() + "\n");
                     }
                 }
                 if (b.getSmi().equals("LDM")) {
-                    LdmAnalyzer ldm = new LdmAnalyzer();
-                    ldm.Analyze(b.getText());
-                    stmt.setString(12, ldm.getFlightNumber());
-                    stmt.setString(13, ldm.getFlightDate());
+                    AnalyzerContext ctx = new AnalyzerContext();
+                    ctx.setAnalyzer(new LdmAnalyzer());
+                    ctx.analyzeMessage(b.getText());
+                    stmt.setString(12, ctx.getFlightNumber());
+                    stmt.setString(13, ctx.getFlightDate());
                     stmt.setString(14, null);
                     stmt.setString(15, null);
                     stmt.setString(16, null);
                     stmt.setString(17, null);
                     stmt.setString(18, null);
                     stmt.setString(19, null);
-                    if ((!ldm.getFlightNumber().equals(""))) {
-                        System.out.println("Mensaje para vuelo añadido: " + ldm.getFlightNumber() + "\n");
+                    if ((!ctx.getFlightNumber().equals(""))) {
+                        System.out.println("Mensaje para vuelo añadido: " + ctx.getFlightNumber() + "\n");
                         stmt.executeUpdate();
                     } else {
-                        System.out.println("Mensaje para vuelo ignorado: " + ldm.getFlightNumber() + "\n");
+                        System.out.println("Mensaje para vuelo ignorado: " + ctx.getFlightNumber() + "\n");
                     }
                 }
                 if (b.getSmi().equals("CPM")) {
-                    CpmAnalyzer cpm = new CpmAnalyzer();
-                    cpm.Analyze(b.getText());
-                    stmt.setString(12, cpm.getFlightNumber());
-                    stmt.setString(13, cpm.getFlightDate());
+                    AnalyzerContext ctx = new AnalyzerContext();
+                    ctx.setAnalyzer(new CpmAnalyzer());
+                    ctx.analyzeMessage(b.getText());
+                    stmt.setString(12, ctx.getFlightNumber());
+                    stmt.setString(13, ctx.getFlightDate());
                     stmt.setString(14, null);
                     stmt.setString(15, null);
                     stmt.setString(16, null);
                     stmt.setString(17, null);
                     stmt.setString(18, null);
                     stmt.setString(19, null);
-                    if ((!cpm.getFlightNumber().equals(""))) {
-                        System.out.println("Mensaje para vuelo añadido: " + cpm.getFlightNumber() + "\n");
+                    if ((!ctx.getFlightNumber().equals(""))) {
+                        System.out.println("Mensaje para vuelo añadido: " + ctx.getFlightNumber() + "\n");
                         stmt.executeUpdate();
                     } else {
-                        System.out.println("Mensaje para vuelo ignorado: " + cpm.getFlightNumber() + "\n");
+                        System.out.println("Mensaje para vuelo ignorado: " + ctx.getFlightNumber() + "\n");
                     }
                 }
                 stmt.close();
@@ -257,4 +264,7 @@ public class FileHandler {
         // Disconnection from LoaderDB
         this.DBdisconnection();
     }
+    
+    
+    
 }
